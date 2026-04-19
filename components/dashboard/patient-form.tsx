@@ -3,6 +3,7 @@
 import { useActionState, useRef } from "react"
 import { submitPatientForm } from "@/app/actions"
 import { usePatientStore } from "@/store"
+import { useToast } from "@/hooks/use-toast"
 import {
   Dialog,
   DialogTrigger,
@@ -25,16 +26,25 @@ import {
 
 export function PatientForm() {
   const dialogCloseRef = useRef<HTMLButtonElement>(null)
+  const formRef = useRef<HTMLFormElement>(null)
+  const { toast } = useToast()
   const addPatient = usePatientStore((state) => state.addPatient)
 
   const [state, formAction, isPending] = useActionState(
-    async (prevState, formData: FormData) => {
+    async (prevState: { success: boolean; message: string; errors?: Record<string, string> }, formData: FormData) => {
       const result = await submitPatientForm(prevState, formData)
 
       if (result.success && result.patient) {
         addPatient(result.patient)
+        toast.success(`Patient ${result.patient.name} added successfully!`)
+        // Clear form inputs
+        if (formRef.current) {
+          formRef.current.reset()
+        }
         // Close the dialog after successful submission
         dialogCloseRef.current?.click()
+      } else if (!result.success) {
+        toast.error(result.message || "Failed to add patient")
       }
 
       return result
@@ -58,7 +68,7 @@ export function PatientForm() {
           </DialogDescription>
         </DialogHeader>
 
-        <form action={formAction} className="space-y-4">
+        <form ref={formRef} action={formAction} className="space-y-4">
           {/* Name Field */}
           <div className="space-y-2">
             <Label htmlFor="name">Patient Name</Label>
@@ -94,7 +104,7 @@ export function PatientForm() {
           <div className="space-y-2">
             <Label htmlFor="gender">Gender</Label>
             <Select name="gender" disabled={isPending}>
-              <SelectTrigger id="gender" required>
+              <SelectTrigger id="gender">
                 <SelectValue placeholder="Select gender" />
               </SelectTrigger>
               <SelectContent>
@@ -123,19 +133,6 @@ export function PatientForm() {
               <p className="text-sm text-red-500">{state.errors.primaryComplaint}</p>
             )}
           </div>
-
-          {/* Success/Error Message */}
-          {state.message && (
-            <div
-              className={`rounded-md p-3 text-sm ${
-                state.success
-                  ? "bg-green-50 text-green-700"
-                  : "bg-red-50 text-red-700"
-              }`}
-            >
-              {state.message}
-            </div>
-          )}
 
           {/* Dialog Footer */}
           <DialogFooter>

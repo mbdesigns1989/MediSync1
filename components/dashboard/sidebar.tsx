@@ -39,7 +39,7 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 h-screen bg-white shadow-lg transition-all duration-300 ease-in-out",
+        "fixed left-0 top-0 h-screen bg-white shadow-lg transition-all duration-300 ease-in-out z-50 md:z-auto",
         sidebarOpen ? "w-64" : "w-20"
       )}
     >

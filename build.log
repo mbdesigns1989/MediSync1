@@ -1,0 +1,22 @@
+
+> medisync-ai@0.1.0 build
+> next build
+
+▲ Next.js 16.2.4 (Turbopack)
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 2.4min
+  Running TypeScript ...
+Failed to type check.
+
+.next/dev/types/routes.d.ts:60:1
+Type error: Unexpected keyword or identifier.
+
+  [90m58 |[0m   }
+  [90m59 |[0m }
+[31m[1m>[0m [90m60 |[0m nds [33mLayoutRoutes[0m> = {
+  [90m   |[0m [31m[1m^[0m
+  [90m61 |[0m     params: [33mPromise[0m<[33mParamMap[0m[[33mLayoutRoute[0m]>
+  [90m62 |[0m     children: [33mReact[0m.[33mReactNode[0m
+  [90m63 |[0m   } & {
+Next.js build worker exited with code: 1 and signal: null

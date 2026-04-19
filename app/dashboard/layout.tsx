@@ -12,14 +12,22 @@ export default function DashboardLayout({
   const { sidebarOpen } = useUIStore();
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div
+      className="flex min-h-screen bg-slate-50"
+      style={
+        {
+          "--sidebar-width": "16rem",
+          "--sidebar-collapsed-width": "5rem",
+        } as React.CSSProperties
+      }
+    >
       {/* Fixed Sidebar */}
       <Sidebar />
-      
-      {/* Main Content Area - Adjusts based on sidebar state */}
+
+      {/* Main Content Area - Adjusts based on sidebar state using CSS variables */}
       <div
         className={`flex flex-1 flex-col transition-all duration-300 ${
-          sidebarOpen ? "ml-64" : "ml-20"
+          sidebarOpen ? "md:pl-[var(--sidebar-width)]" : "md:pl-[var(--sidebar-collapsed-width)]"
         }`}
       >
         <Header />

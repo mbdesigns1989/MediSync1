@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { StatusBadge } from "./status-badge";
+import { EmptyState } from "./empty-state";
 import { usePatientStore } from "@/store";
 
 type Status = "In Progress" | "Waiting" | "Completed" | "Scheduled";
@@ -82,6 +83,11 @@ const mockAppointments: Appointment[] = [
 
 export function AppointmentsTable() {
   const patients = usePatientStore((state) => state.patients);
+
+  // If no custom patients have been added yet, show empty state
+  if (patients.length === 0) {
+    return <EmptyState />
+  }
 
   // Convert newly added patients to appointment format
   const newPatientAppointments: Appointment[] = patients.map((patient) => ({

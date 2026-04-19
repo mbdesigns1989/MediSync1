@@ -3,15 +3,18 @@ import { Patient } from "@/types/patient";
 
 interface PatientStore {
   patients: Patient[];
+  lastAddedPatientId: string | null;
   addPatient: (patient: Patient) => void;
   removePatient: (patientId: string) => void;
+  clearAllPatients: () => void;
 }
 
 /**
  * Zustand store for managing patient list
  * 
  * Persists patient data and triggers re-renders across dashboard
- * when new patients are added or removed
+ * when new patients are added or removed. Tracks lastAddedPatientId
+ * so other components can react to new patient additions.
  */
 export const usePatientStore = create<PatientStore>((set) => ({
   patients: [
@@ -40,16 +43,25 @@ export const usePatientStore = create<PatientStore>((set) => ({
       createdAt: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
     },
   ],
+  lastAddedPatientId: null,
   
   addPatient: (patient: Patient) => {
     set((state) => ({
       patients: [patient, ...state.patients], // Add to beginning for visibility
+      lastAddedPatientId: patient.id, // Track the last added patient ID
     }));
   },
   
   removePatient: (patientId: string) => {
     set((state) => ({
       patients: state.patients.filter((p) => p.id !== patientId),
+    }));
+  },
+
+  clearAllPatients: () => {
+    set(() => ({
+      patients: [],
+      lastAddedPatientId: null,
     }));
   },
 }));
