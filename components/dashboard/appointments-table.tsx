@@ -1,3 +1,5 @@
+"use client"
+
 import {
   Table,
   TableBody,
@@ -7,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { StatusBadge } from "./status-badge";
+import { usePatientStore } from "@/store";
 
 type Status = "In Progress" | "Waiting" | "Completed" | "Scheduled";
 
@@ -78,6 +81,20 @@ const mockAppointments: Appointment[] = [
 ];
 
 export function AppointmentsTable() {
+  const patients = usePatientStore((state) => state.patients);
+
+  // Convert newly added patients to appointment format
+  const newPatientAppointments: Appointment[] = patients.map((patient) => ({
+    id: patient.id,
+    patientName: patient.name,
+    appointmentTime: "Pending",
+    reason: patient.primaryComplaint,
+    status: "Scheduled" as const,
+  }));
+
+  // Combine new patient appointments with mock data
+  const allAppointments = [...newPatientAppointments, ...mockAppointments];
+
   return (
     <Table>
       <TableHeader>
@@ -89,7 +106,7 @@ export function AppointmentsTable() {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {mockAppointments.map((appointment) => (
+        {allAppointments.map((appointment) => (
           <TableRow key={appointment.id} className="border-b border-slate-100">
             <TableCell className="py-4 text-slate-900 font-medium">
               {appointment.patientName}

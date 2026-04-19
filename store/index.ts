@@ -38,3 +38,4 @@
 
 // Re-export your stores here for easy imports
 export { useUIStore } from "./ui";
+export { usePatientStore } from "./patients";
