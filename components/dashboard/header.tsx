@@ -1,18 +1,10 @@
 "use client";
 
-import { useUIStore } from "@/store";
 import { Bell, User } from "lucide-react";
 
 export function Header() {
-  const { sidebarOpen } = useUIStore();
-
   return (
-    <header
-      className="border-b border-slate-200 bg-white px-8 py-4 shadow-sm transition-all duration-300"
-      style={{
-        marginLeft: sidebarOpen ? "256px" : "80px",
-      }}
-    >
+    <header className="border-b border-slate-200 bg-white px-8 py-4 shadow-sm">
       <div className="flex items-center justify-between">
         {/* Breadcrumb and Welcome */}
         <div className="flex flex-col">
@@ -22,10 +14,16 @@ export function Header() {
 
         {/* Right Side Icons */}
         <div className="flex items-center gap-4">
-          <button className="rounded-lg p-2 hover:bg-slate-100" aria-label="Notifications">
+          <button
+            className="rounded-lg p-2 hover:bg-slate-100 transition-colors"
+            aria-label="Notifications"
+          >
             <Bell className="h-5 w-5 text-slate-600" />
           </button>
-          <button className="rounded-lg p-2 hover:bg-slate-100" aria-label="Profile">
+          <button
+            className="rounded-lg p-2 hover:bg-slate-100 transition-colors"
+            aria-label="Profile"
+          >
             <User className="h-5 w-5 text-slate-600" />
           </button>
         </div>
