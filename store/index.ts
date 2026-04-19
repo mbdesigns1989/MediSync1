@@ -37,4 +37,4 @@
  */
 
 // Re-export your stores here for easy imports
-// Example: export { useAuthStore } from './auth';
+export { useUIStore } from "./ui";
