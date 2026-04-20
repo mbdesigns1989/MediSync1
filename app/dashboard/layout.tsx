@@ -27,7 +27,7 @@ export default function DashboardLayout({
       {/* Main Content Area - Adjusts based on sidebar state using CSS variables */}
       <div
         className={`flex flex-1 flex-col transition-all duration-300 ${
-          sidebarOpen ? "md:pl-[var(--sidebar-width)]" : "md:pl-[var(--sidebar-collapsed-width)]"
+          sidebarOpen ? "md:pl-(--sidebar-width)" : "md:pl-(--sidebar-collapsed-width)"
         }`}
       >
         <Header />

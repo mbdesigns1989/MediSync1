@@ -60,7 +60,7 @@ export function PatientForm() {
       <DialogTrigger asChild>
         <Button>Add Patient</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Add New Patient</DialogTitle>
           <DialogDescription>

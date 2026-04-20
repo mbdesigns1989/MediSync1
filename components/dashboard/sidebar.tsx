@@ -79,7 +79,7 @@ export function Sidebar() {
               )}
               title={!sidebarOpen ? item.name : undefined}
             >
-              <Icon className="h-5 w-5 flex-shrink-0" />
+              <Icon className="h-5 w-5 shrink-0" />
               {sidebarOpen && <span className="text-sm font-medium">{item.name}</span>}
             </Link>
           );
