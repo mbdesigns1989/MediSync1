@@ -1,5 +1,6 @@
 "use client"
 
+import { useMemo } from "react"
 import {
   Table,
   TableBody,
@@ -7,19 +8,23 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { StatusBadge } from "./status-badge";
-import { EmptyState } from "./empty-state";
-import { usePatientStore } from "@/store";
+} from "@/components/ui/table"
+import { Button } from "@/components/ui/button"
+import { StatusBadge } from "./status-badge"
+import { EmptyState } from "./empty-state"
+import { SearchEmptyState } from "./search-empty-state"
+import { usePatientStore } from "@/store"
+import { Trash2 } from "lucide-react"
 
-type Status = "In Progress" | "Waiting" | "Completed" | "Scheduled";
+type Status = "In Progress" | "Waiting" | "Completed" | "Scheduled"
 
 interface Appointment {
-  id: string;
-  patientName: string;
-  appointmentTime: string;
-  reason: string;
-  status: Status;
+  id: string
+  patientName: string
+  appointmentTime: string
+  reason: string
+  status: Status
+  isCustomPatient?: boolean
 }
 
 const mockAppointments: Appointment[] = [
@@ -79,13 +84,24 @@ const mockAppointments: Appointment[] = [
     reason: "Physical Therapy",
     status: "Completed",
   },
-];
+]
 
-export function AppointmentsTable() {
-  const patients = usePatientStore((state) => state.patients);
+interface AppointmentsTableProps {
+  searchQuery?: string
+}
 
-  // If no custom patients have been added yet, show empty state
-  if (patients.length === 0) {
+export function AppointmentsTable({ searchQuery = "" }: AppointmentsTableProps) {
+  const patients = usePatientStore((state) => state.patients)
+  const removePatient = usePatientStore((state) => state.removePatient)
+  const isHydrated = usePatientStore((state) => state.isHydrated)
+
+  // Prevent hydration errors by not rendering until store is hydrated
+  if (!isHydrated) {
+    return <div className="animate-pulse h-64 bg-slate-100 rounded-lg" />
+  }
+
+  // If no custom patients have been added yet and no search query, show empty state
+  if (patients.length === 0 && !searchQuery) {
     return <EmptyState />
   }
 
@@ -96,10 +112,30 @@ export function AppointmentsTable() {
     appointmentTime: "Pending",
     reason: patient.primaryComplaint,
     status: "Scheduled" as const,
-  }));
+    isCustomPatient: true,
+  }))
 
   // Combine new patient appointments with mock data
-  const allAppointments = [...newPatientAppointments, ...mockAppointments];
+  const allAppointments = [...newPatientAppointments, ...mockAppointments]
+
+  // Filter appointments based on search query - memoized for performance
+  const filteredAppointments = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return allAppointments
+    }
+
+    const query = searchQuery.toLowerCase().trim()
+    return allAppointments.filter(
+      (appointment) =>
+        appointment.patientName.toLowerCase().includes(query) ||
+        appointment.id.toLowerCase().includes(query)
+    )
+  }, [allAppointments, searchQuery])
+
+  // Show search empty state
+  if (searchQuery && filteredAppointments.length === 0) {
+    return <SearchEmptyState query={searchQuery} />
+  }
 
   return (
     <Table>
@@ -109,10 +145,11 @@ export function AppointmentsTable() {
           <TableHead className="text-slate-700">Appointment Time</TableHead>
           <TableHead className="text-slate-700">Reason</TableHead>
           <TableHead className="text-slate-700">Status</TableHead>
+          <TableHead className="text-right text-slate-700">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {allAppointments.map((appointment) => (
+        {filteredAppointments.map((appointment) => (
           <TableRow key={appointment.id} className="border-b border-slate-100">
             <TableCell className="py-4 text-slate-900 font-medium">
               {appointment.patientName}
@@ -126,9 +163,22 @@ export function AppointmentsTable() {
             <TableCell className="py-4">
               <StatusBadge status={appointment.status} />
             </TableCell>
+            <TableCell className="py-4 text-right">
+              {appointment.isCustomPatient && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removePatient(appointment.id)}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span className="ml-1 hidden sm:inline">Delete</span>
+                </Button>
+              )}
+            </TableCell>
           </TableRow>
         ))}
       </TableBody>
     </Table>
-  );
+  )
 }

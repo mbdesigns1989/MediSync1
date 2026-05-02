@@ -1,18 +1,24 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AppointmentsTable } from "./appointments-table";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { AppointmentsTable } from "./appointments-table"
 
-export function RecentAppointments() {
+interface RecentAppointmentsProps {
+  searchQuery?: string
+}
+
+export function RecentAppointments({ searchQuery = "" }: RecentAppointmentsProps) {
   return (
     <Card className="border-slate-200 bg-white">
       <CardHeader>
         <CardTitle>Recent Appointments</CardTitle>
         <CardDescription>
-          View your upcoming and recent patient appointments
+          {searchQuery
+            ? `Search results for: "${searchQuery}"`
+            : "View your upcoming and recent patient appointments"}
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <AppointmentsTable />
+        <AppointmentsTable searchQuery={searchQuery} />
       </CardContent>
     </Card>
-  );
+  )
 }
