@@ -61,3 +61,5 @@ export { Toast } from "./toast"
 
 export { ToasterProvider } from "./toaster"
 export { useToasterContext } from "./toaster"
+
+export { Skeleton } from "./skeleton"
