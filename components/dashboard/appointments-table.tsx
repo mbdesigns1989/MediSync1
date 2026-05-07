@@ -95,16 +95,6 @@ export function AppointmentsTable({ searchQuery = "" }: AppointmentsTableProps) 
   const removePatient = usePatientStore((state) => state.removePatient)
   const isHydrated = usePatientStore((state) => state.isHydrated)
 
-  // Prevent hydration errors by not rendering until store is hydrated
-  if (!isHydrated) {
-    return <div className="animate-pulse h-64 bg-slate-100 rounded-lg" />
-  }
-
-  // If no custom patients have been added yet and no search query, show empty state
-  if (patients.length === 0 && !searchQuery) {
-    return <EmptyState />
-  }
-
   // Convert newly added patients to appointment format
   const newPatientAppointments: Appointment[] = patients.map((patient) => ({
     id: patient.id,
@@ -131,6 +121,16 @@ export function AppointmentsTable({ searchQuery = "" }: AppointmentsTableProps) 
         appointment.id.toLowerCase().includes(query)
     )
   }, [allAppointments, searchQuery])
+
+  // Prevent hydration errors by not rendering until store is hydrated
+  if (!isHydrated) {
+    return <div className="animate-pulse h-64 bg-slate-100 rounded-lg" />
+  }
+
+  // If no custom patients have been added yet and no search query, show empty state
+  if (patients.length === 0 && !searchQuery) {
+    return <EmptyState />
+  }
 
   // Show search empty state
   if (searchQuery && filteredAppointments.length === 0) {
