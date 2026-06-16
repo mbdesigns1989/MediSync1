@@ -2,7 +2,7 @@ import { PatientDetails } from "@/types/patient"
 
 /**
  * Simulates fetching patient details from a database with a 2.5 second delay
- * This is a server-only function used with Next.js 15 streaming
+ * This is a server-only function used with Next.js 16 / React 19 streaming
  */
 export async function getPatientDetails(id: string): Promise<PatientDetails> {
   // Simulate network delay
@@ -30,8 +30,8 @@ export async function getPatientDetails(id: string): Promise<PatientDetails> {
     nextAppointment: new Date("2026-06-10"),
   }
 
-  // Simulate patient variation based on ID
-  if (id === "PAT-2") {
+  // Simulate patient variation based on ID (matches the seed IDs in store/patients.ts)
+  if (id === "PAT-002") {
     mockPatient.name = "Michael Chen"
     mockPatient.age = 45
     mockPatient.gender = "male"
@@ -46,7 +46,7 @@ export async function getPatientDetails(id: string): Promise<PatientDetails> {
       "Lisinopril 20mg daily",
       "Atorvastatin 40mg daily",
     ]
-  } else if (id === "PAT-3") {
+  } else if (id === "PAT-003") {
     mockPatient.name = "Emily Rodriguez"
     mockPatient.age = 28
     mockPatient.gender = "female"

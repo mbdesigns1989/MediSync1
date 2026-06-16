@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo } from "react"
+import Link from "next/link"
 import {
   Table,
   TableBody,
@@ -25,6 +26,8 @@ interface Appointment {
   reason: string
   status: Status
   isCustomPatient?: boolean
+  /** Real patient record ID — present only for rows with a detail page. */
+  patientId?: string
 }
 
 const mockAppointments: Appointment[] = [
@@ -103,6 +106,7 @@ export function AppointmentsTable({ searchQuery = "" }: AppointmentsTableProps) 
     reason: patient.primaryComplaint,
     status: "Scheduled" as const,
     isCustomPatient: true,
+    patientId: patient.id,
   }))
 
   // Combine new patient appointments with mock data
@@ -152,7 +156,16 @@ export function AppointmentsTable({ searchQuery = "" }: AppointmentsTableProps) 
         {filteredAppointments.map((appointment) => (
           <TableRow key={appointment.id} className="border-b border-slate-100">
             <TableCell className="py-4 text-slate-900 font-medium">
-              {appointment.patientName}
+              {appointment.patientId ? (
+                <Link
+                  href={`/dashboard/patient/${appointment.patientId}`}
+                  className="text-blue-600 hover:text-blue-700 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-sm"
+                >
+                  {appointment.patientName}
+                </Link>
+              ) : (
+                appointment.patientName
+              )}
             </TableCell>
             <TableCell className="py-4 text-slate-600">
               {appointment.appointmentTime}
