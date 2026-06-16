@@ -31,7 +31,9 @@ export const usePatientStore = create<PatientStore>()(
           age: 32,
           gender: "female",
           primaryComplaint: "General check-up",
-          createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+          // Fixed ISO timestamp (not Date.now()) so the server and client render
+          // identical values — avoids React hydration mismatches.
+          createdAt: new Date("2026-06-14T08:00:00.000Z"),
         },
         {
           id: "PAT-002",
@@ -39,7 +41,7 @@ export const usePatientStore = create<PatientStore>()(
           age: 45,
           gender: "male",
           primaryComplaint: "Follow-up appointment",
-          createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000), // 1 hour ago
+          createdAt: new Date("2026-06-14T09:00:00.000Z"),
         },
         {
           id: "PAT-003",
@@ -47,7 +49,7 @@ export const usePatientStore = create<PatientStore>()(
           age: 28,
           gender: "female",
           primaryComplaint: "Lab results consultation",
-          createdAt: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
+          createdAt: new Date("2026-06-14T09:30:00.000Z"),
         },
       ],
       lastAddedPatientId: null,
