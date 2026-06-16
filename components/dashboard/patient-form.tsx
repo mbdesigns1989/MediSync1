@@ -3,7 +3,6 @@
 import { useActionState, useRef } from "react"
 import { useFormStatus } from "react-dom"
 import { submitPatientForm } from "@/app/actions"
-import { usePatientStore } from "@/store"
 import { useToast } from "@/hooks/use-toast"
 import type { Patient } from "@/types/patient"
 import {
@@ -53,7 +52,6 @@ export function PatientForm({ addOptimisticPatient }: PatientFormProps) {
   const dialogCloseRef = useRef<HTMLButtonElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
   const { toast } = useToast()
-  const addPatient = usePatientStore((state) => state.addPatient)
 
   const [state, formAction, isPending] = useActionState(
     async (prevState: { success: boolean; message: string; errors?: Record<string, string> }, formData: FormData) => {
@@ -78,7 +76,8 @@ export function PatientForm({ addOptimisticPatient }: PatientFormProps) {
       const result = await submitPatientForm(prevState, formData)
 
       if (result.success && result.patient) {
-        addPatient(result.patient)
+        // No client store write needed — the server action persisted the patient
+        // and revalidated /dashboard, so the server-rendered list refreshes.
         toast.success(`Patient ${result.patient.name} added successfully!`)
         // Clear form inputs
         if (formRef.current) {

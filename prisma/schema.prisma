@@ -1,0 +1,41 @@
+// MediSync AI — Prisma schema (SQLite)
+// Prisma 7: `prisma-client` generator with explicit output + a driver adapter.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+  runtime  = "nodejs"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Patient {
+  id               String   @id @default(cuid())
+  name             String
+  age              Int
+  gender           String // "male" | "female" | "other" | "prefer-not-to-say"
+  primaryComplaint String
+  // Rich intake fields (used by the Phase 3.4 multi-step form; optional so the
+  // simple quick-add path still works).
+  medications        String? // JSON-encoded string[] of medication names
+  emergencyContacts  String? // JSON-encoded { name, relationship, phone }[]
+  createdAt        DateTime @default(now())
+
+  appointments Appointment[]
+}
+
+model Appointment {
+  id        String   @id @default(cuid())
+  reason    String
+  // Drag-and-drop board status column.
+  status    String   @default("Scheduled") // "Waiting" | "In Progress" | "Completed" | "Scheduled"
+  // Manual ordering within a status column (for stable drag positioning).
+  position  Int      @default(0)
+  scheduledAt DateTime?
+  createdAt DateTime @default(now())
+
+  patient   Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  patientId String
+}

@@ -39,12 +39,12 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 h-screen bg-white shadow-lg transition-all duration-300 ease-in-out z-50 md:z-auto",
+        "fixed left-0 top-0 h-screen bg-white shadow-lg transition-all duration-300 ease-in-out z-50 md:z-auto dark:bg-slate-900",
         sidebarOpen ? "w-64" : "w-20"
       )}
     >
       {/* Header with Logo and Toggle */}
-      <div className="flex h-20 items-center justify-between border-b border-slate-200 px-4">
+      <div className="flex h-20 items-center justify-between border-b border-slate-200 px-4 dark:border-slate-800">
         {sidebarOpen && (
           <div className="text-xl font-bold text-blue-600">MediSync</div>
         )}
@@ -74,8 +74,8 @@ export function Sidebar() {
               className={cn(
                 "flex items-center gap-3 rounded-lg px-4 py-3 transition-all duration-200",
                 active
-                  ? "bg-blue-50 text-blue-600"
-                  : "text-slate-600 hover:bg-slate-50"
+                  ? "bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400"
+                  : "text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
               )}
               title={!sidebarOpen ? item.name : undefined}
             >

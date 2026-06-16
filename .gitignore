@@ -46,3 +46,8 @@ next-env.d.ts
 # local planning & session notes (not committed)
 /PLAN.md
 /conversations/
+
+# prisma — generated client + local sqlite db
+/lib/generated/
+*.db
+*.db-journal

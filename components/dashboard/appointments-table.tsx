@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useTransition } from "react"
 import Link from "next/link"
 import type { Patient } from "@/types/patient"
 import {
@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button"
 import { StatusBadge } from "./status-badge"
 import { EmptyState } from "./empty-state"
 import { SearchEmptyState } from "./search-empty-state"
-import { usePatientStore } from "@/store"
+import { deletePatient } from "@/app/actions"
 import { Trash2 } from "lucide-react"
 
 type Status = "In Progress" | "Waiting" | "Completed" | "Scheduled"
@@ -92,25 +92,17 @@ const mockAppointments: Appointment[] = [
 
 interface AppointmentsTableProps {
   searchQuery?: string
-  /**
-   * Patient list including any optimistic (in-flight) patient. Owned by the
-   * dashboard page via `useOptimistic` so a new row appears instantly on submit,
-   * before the server action settles. Falls back to the store when omitted.
-   */
-  optimisticPatients?: Patient[]
+  /** Patients fetched on the server (including any optimistic in-flight one). */
+  patients: Patient[]
 }
 
 export function AppointmentsTable({
   searchQuery = "",
-  optimisticPatients,
+  patients,
 }: AppointmentsTableProps) {
-  const storePatients = usePatientStore((state) => state.patients)
-  const removePatient = usePatientStore((state) => state.removePatient)
-  const isHydrated = usePatientStore((state) => state.isHydrated)
+  const [isDeleting, startDelete] = useTransition()
 
-  const patients = optimisticPatients ?? storePatients
-
-  // Convert patients (incl. any optimistic one) to appointment format
+  // Convert patients to appointment-row format
   const newPatientAppointments: Appointment[] = useMemo(
     () =>
       patients.map((patient) => ({
@@ -125,7 +117,7 @@ export function AppointmentsTable({
     [patients]
   )
 
-  // Combine new patient appointments with mock data
+  // Combine real patient rows with the sample schedule (static demo data)
   const allAppointments = useMemo(
     () => [...newPatientAppointments, ...mockAppointments],
     [newPatientAppointments]
@@ -145,12 +137,7 @@ export function AppointmentsTable({
     )
   }, [allAppointments, searchQuery])
 
-  // Prevent hydration errors by not rendering until store is hydrated
-  if (!isHydrated) {
-    return <div className="animate-pulse h-64 bg-slate-100 rounded-lg" />
-  }
-
-  // If no custom patients have been added yet and no search query, show empty state
+  // If no patients exist and no search query, show empty state
   if (patients.length === 0 && !searchQuery) {
     return <EmptyState />
   }
@@ -196,11 +183,14 @@ export function AppointmentsTable({
               <StatusBadge status={appointment.status} />
             </TableCell>
             <TableCell className="py-4 text-right">
-              {appointment.isCustomPatient && (
+              {appointment.patientId && (
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => removePatient(appointment.id)}
+                  disabled={isDeleting}
+                  onClick={() =>
+                    startDelete(() => deletePatient(appointment.patientId!))
+                  }
                   className="text-red-600 hover:text-red-700 hover:bg-red-50"
                 >
                   <Trash2 className="h-4 w-4" />

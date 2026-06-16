@@ -1,21 +1,29 @@
 "use server";
 
 import { z } from "zod";
-import { SubmitPatientResult, Patient, patientSchema } from "@/types/patient";
+import { revalidatePath } from "next/cache";
+import {
+  SubmitPatientResult,
+  Patient,
+  patientSchema,
+  patientIntakeSchema,
+  type PatientIntakeInput,
+} from "@/types/patient";
+import { prisma } from "@/lib/prisma";
 
 /**
- * Server Action for patient form submission
+ * Server Action for the quick add-patient form.
  *
- * Validates form data with the shared Zod schema (the server trust boundary),
- * simulates a database save with a 1.5s delay, and returns a success/error result.
+ * Validates with the shared Zod schema (the server trust boundary), persists to
+ * the database, revalidates the dashboard, and returns the created patient.
  */
 export async function submitPatientForm(
   prevState: SubmitPatientResult,
   formData: FormData
 ): Promise<SubmitPatientResult> {
   try {
-    // Validate with the shared schema. safeParse never throws — on failure we map
-    // Zod's field errors onto the existing { errors } shape the form already renders.
+    // safeParse never throws — on failure we map Zod's field errors onto the
+    // { errors } shape the form already renders per-field.
     const parsed = patientSchema.safeParse({
       name: formData.get("name"),
       age: formData.get("age"),
@@ -40,20 +48,21 @@ export async function submitPatientForm(
 
     const { name, age, gender, primaryComplaint } = parsed.data;
 
-    // Simulate database save with 1.5-second delay
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    const row = await prisma.patient.create({
+      data: { name, age, gender, primaryComplaint },
+    });
 
-    // Create patient object
     const patient: Patient = {
-      id: `PAT-${Date.now()}-${crypto.randomUUID().slice(0, 9)}`,
-      name,
-      age,
-      gender,
-      primaryComplaint,
-      createdAt: new Date(),
+      id: row.id,
+      name: row.name,
+      age: row.age,
+      gender: row.gender as Patient["gender"],
+      primaryComplaint: row.primaryComplaint,
+      createdAt: row.createdAt,
     };
 
-    // Success response
+    revalidatePath("/dashboard");
+
     return {
       success: true,
       message: `Patient ${name} added successfully!`,
@@ -65,5 +74,60 @@ export async function submitPatientForm(
       success: false,
       message: "An error occurred while submitting the form. Please try again.",
     };
+  }
+}
+
+/** Delete a patient (and their appointments via cascade). */
+export async function deletePatient(patientId: string): Promise<void> {
+  await prisma.patient.delete({ where: { id: patientId } });
+  revalidatePath("/dashboard");
+}
+
+export interface IntakeResult {
+  success: boolean;
+  message: string;
+  patientId?: string;
+}
+
+/**
+ * Rich multi-step intake submission (medications[], emergency contacts[]).
+ *
+ * Re-validates with the SAME `patientIntakeSchema` the client used in React Hook
+ * Form — the server trust boundary. The client never to be trusted: even though
+ * RHF already validated, we re-check here before persisting.
+ */
+export async function createPatientIntake(
+  input: PatientIntakeInput
+): Promise<IntakeResult> {
+  const parsed = patientIntakeSchema.safeParse(input);
+  if (!parsed.success) {
+    return { success: false, message: "Validation failed on the server" };
+  }
+
+  try {
+    const { name, age, gender, primaryComplaint, medications, emergencyContacts } =
+      parsed.data;
+
+    const row = await prisma.patient.create({
+      data: {
+        name,
+        age,
+        gender,
+        primaryComplaint,
+        // Field arrays stored as JSON strings (SQLite has no array type).
+        medications: JSON.stringify(medications.map((m) => m.name)),
+        emergencyContacts: JSON.stringify(emergencyContacts),
+      },
+    });
+
+    revalidatePath("/dashboard");
+    return {
+      success: true,
+      message: `Patient ${name} admitted successfully!`,
+      patientId: row.id,
+    };
+  } catch (error) {
+    console.error("createPatientIntake error:", error);
+    return { success: false, message: "Failed to save patient intake" };
   }
 }

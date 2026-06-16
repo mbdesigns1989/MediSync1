@@ -1,7 +1,22 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ToasterProvider } from "@/components/ui/toaster";
+import { QueryProvider } from "@/components/providers/query-provider";
+import { ThemeProvider } from "@/components/providers/theme-provider";
 import "./globals.css";
+
+// Runs before paint to set the .dark class from the stored preference (or OS),
+// preventing a flash of the wrong theme on load.
+const themeInitScript = `
+(function () {
+  try {
+    var t = localStorage.getItem('medisync-theme') || 'system';
+    var dark = t === 'dark' || (t === 'system' &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches);
+    if (dark) document.documentElement.classList.add('dark');
+  } catch (e) {}
+})();
+`;
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,10 +45,18 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body className="min-h-full flex flex-col">
-        <ToasterProvider>{children}</ToasterProvider>
+        <ThemeProvider>
+          <QueryProvider>
+            <ToasterProvider>{children}</ToasterProvider>
+          </QueryProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

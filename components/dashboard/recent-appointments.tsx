@@ -4,12 +4,12 @@ import type { Patient } from "@/types/patient"
 
 interface RecentAppointmentsProps {
   searchQuery?: string
-  optimisticPatients?: Patient[]
+  patients: Patient[]
 }
 
 export function RecentAppointments({
   searchQuery = "",
-  optimisticPatients,
+  patients,
 }: RecentAppointmentsProps) {
   return (
     <Card className="border-slate-200 bg-white">
@@ -22,10 +22,7 @@ export function RecentAppointments({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <AppointmentsTable
-          searchQuery={searchQuery}
-          optimisticPatients={optimisticPatients}
-        />
+        <AppointmentsTable searchQuery={searchQuery} patients={patients} />
       </CardContent>
     </Card>
   )
