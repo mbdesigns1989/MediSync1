@@ -21,7 +21,7 @@ interface PatientStore {
  * - Tracks lastAddedPatientId for component reactions to new additions
  * - Optimized for performance on lower-end hardware
  */
-export const usePatientStore = create<PatientStore>(
+export const usePatientStore = create<PatientStore>()(
   persist(
     (set) => ({
       patients: [
