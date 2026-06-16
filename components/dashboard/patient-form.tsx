@@ -108,7 +108,7 @@ export function PatientForm({ addOptimisticPatient }: PatientFormProps) {
         <DialogHeader>
           <DialogTitle>Add New Patient</DialogTitle>
           <DialogDescription>
-            Enter the patient's information and primary complaint. Click save when done.
+            Enter the patient&apos;s information and primary complaint. Click save when done.
           </DialogDescription>
         </DialogHeader>
 

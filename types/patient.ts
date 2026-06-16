@@ -98,8 +98,6 @@ export interface PatientDetails extends Patient {
   nextAppointment: Date | null;
 }
 
-export type PatientFormData = Omit<Patient, 'id' | 'createdAt'>;
-
 export interface SubmitPatientResult {
   success: boolean;
   message: string;

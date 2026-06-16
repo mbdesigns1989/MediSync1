@@ -17,7 +17,7 @@ export function EmptyState({ onAddPatientClick }: EmptyStateProps) {
         No patients in queue
       </h3>
       <p className="text-sm text-slate-500 mt-2 text-center max-w-sm">
-        You haven't added any patients yet. Click the button below to get started.
+        You haven&apos;t added any patients yet. Click the button below to get started.
       </p>
       {onAddPatientClick && (
         <Button onClick={onAddPatientClick} className="mt-4">
