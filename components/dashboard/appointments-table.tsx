@@ -2,6 +2,7 @@
 
 import { useMemo } from "react"
 import Link from "next/link"
+import type { Patient } from "@/types/patient"
 import {
   Table,
   TableBody,
@@ -91,26 +92,44 @@ const mockAppointments: Appointment[] = [
 
 interface AppointmentsTableProps {
   searchQuery?: string
+  /**
+   * Patient list including any optimistic (in-flight) patient. Owned by the
+   * dashboard page via `useOptimistic` so a new row appears instantly on submit,
+   * before the server action settles. Falls back to the store when omitted.
+   */
+  optimisticPatients?: Patient[]
 }
 
-export function AppointmentsTable({ searchQuery = "" }: AppointmentsTableProps) {
-  const patients = usePatientStore((state) => state.patients)
+export function AppointmentsTable({
+  searchQuery = "",
+  optimisticPatients,
+}: AppointmentsTableProps) {
+  const storePatients = usePatientStore((state) => state.patients)
   const removePatient = usePatientStore((state) => state.removePatient)
   const isHydrated = usePatientStore((state) => state.isHydrated)
 
-  // Convert newly added patients to appointment format
-  const newPatientAppointments: Appointment[] = patients.map((patient) => ({
-    id: patient.id,
-    patientName: patient.name,
-    appointmentTime: "Pending",
-    reason: patient.primaryComplaint,
-    status: "Scheduled" as const,
-    isCustomPatient: true,
-    patientId: patient.id,
-  }))
+  const patients = optimisticPatients ?? storePatients
+
+  // Convert patients (incl. any optimistic one) to appointment format
+  const newPatientAppointments: Appointment[] = useMemo(
+    () =>
+      patients.map((patient) => ({
+        id: patient.id,
+        patientName: patient.name,
+        appointmentTime: "Pending",
+        reason: patient.primaryComplaint,
+        status: "Scheduled" as const,
+        isCustomPatient: true,
+        patientId: patient.id,
+      })),
+    [patients]
+  )
 
   // Combine new patient appointments with mock data
-  const allAppointments = [...newPatientAppointments, ...mockAppointments]
+  const allAppointments = useMemo(
+    () => [...newPatientAppointments, ...mockAppointments],
+    [newPatientAppointments]
+  )
 
   // Filter appointments based on search query - memoized for performance
   const filteredAppointments = useMemo(() => {

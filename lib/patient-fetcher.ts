@@ -1,10 +1,16 @@
+import { cache } from "react"
 import { PatientDetails } from "@/types/patient"
 
 /**
- * Simulates fetching patient details from a database with a 2.5 second delay
- * This is a server-only function used with Next.js 16 / React 19 streaming
+ * Simulates fetching patient details from a database with a 2.5 second delay.
+ * Server-only, used with Next.js 16 / React 19 streaming.
+ *
+ * Wrapped in React `cache` so a single request that calls it more than once
+ * (e.g. `generateMetadata` + the page itself) shares one result instead of
+ * paying the delay twice.
  */
-export async function getPatientDetails(id: string): Promise<PatientDetails> {
+export const getPatientDetails = cache(
+  async (id: string): Promise<PatientDetails> => {
   // Simulate network delay
   await new Promise((resolve) => setTimeout(resolve, 2500))
 
@@ -60,4 +66,5 @@ export async function getPatientDetails(id: string): Promise<PatientDetails> {
   }
 
   return mockPatient
-}
+  }
+)

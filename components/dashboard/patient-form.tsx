@@ -1,9 +1,11 @@
 "use client"
 
 import { useActionState, useRef } from "react"
+import { useFormStatus } from "react-dom"
 import { submitPatientForm } from "@/app/actions"
 import { usePatientStore } from "@/store"
 import { useToast } from "@/hooks/use-toast"
+import type { Patient } from "@/types/patient"
 import {
   Dialog,
   DialogTrigger,
@@ -24,7 +26,30 @@ import {
   Textarea,
 } from "@/components/ui"
 
-export function PatientForm() {
+/**
+ * Submit button extracted into its own component so it can read `useFormStatus()`
+ * — the React 19 idiom for pulling the parent form's pending state without
+ * prop-drilling. Must be rendered inside the <form> it reports on.
+ */
+function SubmitButton() {
+  const { pending } = useFormStatus()
+  return (
+    <Button type="submit" disabled={pending}>
+      {pending ? "Saving..." : "Save Patient"}
+    </Button>
+  )
+}
+
+interface PatientFormProps {
+  /**
+   * Optimistic-add callback from the dashboard page's `useOptimistic`. Called
+   * inside the form action (a transition) so the new patient's row shows in the
+   * table instantly, before the 1.5s server save settles.
+   */
+  addOptimisticPatient?: (patient: Patient) => void
+}
+
+export function PatientForm({ addOptimisticPatient }: PatientFormProps) {
   const dialogCloseRef = useRef<HTMLButtonElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
   const { toast } = useToast()
@@ -32,6 +57,24 @@ export function PatientForm() {
 
   const [state, formAction, isPending] = useActionState(
     async (prevState: { success: boolean; message: string; errors?: Record<string, string> }, formData: FormData) => {
+      // Optimistically show the patient immediately (still inside the action's
+      // transition, so React holds the optimistic row until the action settles).
+      const optimisticId = `optimistic-${Date.now()}`
+      const name = formData.get("name")?.toString().trim() || ""
+      const ageValue = Number(formData.get("age"))
+      if (addOptimisticPatient && name) {
+        addOptimisticPatient({
+          id: optimisticId,
+          name,
+          age: Number.isFinite(ageValue) ? ageValue : 0,
+          gender: (formData.get("gender")?.toString() ||
+            "prefer-not-to-say") as Patient["gender"],
+          primaryComplaint:
+            formData.get("primaryComplaint")?.toString().trim() || "",
+          createdAt: new Date(),
+        })
+      }
+
       const result = await submitPatientForm(prevState, formData)
 
       if (result.success && result.patient) {
@@ -44,6 +87,8 @@ export function PatientForm() {
         // Close the dialog after successful submission
         dialogCloseRef.current?.click()
       } else if (!result.success) {
+        // Validation/save failed — the optimistic row rolls back automatically
+        // when the action settles (React reverts useOptimistic to the base list).
         toast.error(result.message || "Failed to add patient")
       }
 
@@ -141,9 +186,7 @@ export function PatientForm() {
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" disabled={isPending}>
-              {isPending ? "Saving..." : "Save Patient"}
-            </Button>
+            <SubmitButton />
           </DialogFooter>
         </form>
       </DialogContent>

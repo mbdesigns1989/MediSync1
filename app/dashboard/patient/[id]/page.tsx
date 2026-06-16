@@ -1,4 +1,5 @@
 import { Suspense } from "react"
+import type { Metadata } from "next"
 import { getPatientDetails } from "@/lib/patient-fetcher"
 import {
   Card,
@@ -13,6 +14,20 @@ import PatientProfileLoading from "./loading"
 
 interface PatientProfilePageProps {
   params: Promise<{ id: string }>
+}
+
+// Dynamic per-patient page title, e.g. "Sarah Johnson — MediSync AI"
+// (the "— MediSync AI" suffix comes from the title template in app/layout.tsx).
+// Shares the cached fetch with the page, so the 2.5s delay is paid only once.
+export async function generateMetadata({
+  params,
+}: PatientProfilePageProps): Promise<Metadata> {
+  const { id } = await params
+  const patient = await getPatientDetails(id)
+  return {
+    title: patient.name,
+    description: `Patient profile for ${patient.name} — vitals, clinical notes, and medications.`,
+  }
 }
 
 async function PatientContent({ id }: { id: string }) {
