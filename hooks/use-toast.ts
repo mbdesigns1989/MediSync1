@@ -1,124 +1,40 @@
-import { useState, useCallback } from "react";
+import { useToastStore } from "@/store/toast";
+import type { Toast, ToastType } from "@/store/toast";
 
-export type ToastType = "success" | "error" | "default" | "info";
+export type { Toast, ToastType };
 
-export interface Toast {
-  id: string;
-  title?: string;
-  description?: string;
-  type: ToastType;
-  open: boolean;
-}
+type ToastInput = string | { title?: string; description: string };
 
-interface ToastActionType {
-  type: "ADD_TOAST" | "REMOVE_TOAST" | "CLEAR_TOASTS";
-  payload?: Toast;
-  id?: string;
+/** Normalizes the string-or-object toast argument into {title, description}. */
+function normalize(input: ToastInput): { title?: string; description: string } {
+  if (typeof input === "string") {
+    return { description: input };
+  }
+  return { title: input.title, description: input.description };
 }
 
 /**
- * Custom hook for managing toast notifications
- * Provides methods to create, dismiss, and clear toasts
+ * Toast hook backed by a shared Zustand store (store/toast.ts).
+ *
+ * Every component that calls useToast() reads/writes the SAME toast array, so a
+ * toast fired here is rendered by the ToasterProvider mounted in the root layout.
  */
 export function useToast() {
-  const [toasts, setToasts] = useState<Toast[]>([]);
+  const toasts = useToastStore((state) => state.toasts);
+  const addToast = useToastStore((state) => state.addToast);
+  const dismiss = useToastStore((state) => state.dismiss);
 
-  const addToast = useCallback(
-    (
-      props: Pick<Toast, "title" | "description" | "type"> & {
-        duration?: number;
-      }
-    ) => {
-      const id = `${Date.now()}-${Math.random()}`;
-      const newToast: Toast = {
-        id,
-        title: props.title,
-        description: props.description,
-        type: props.type || "default",
-        open: true,
-      };
-
-      setToasts((prev) => [...prev, newToast]);
-
-      // Auto-remove after duration (default 5 seconds)
-      if (props.duration !== 0) {
-        const timeout = setTimeout(() => {
-          setToasts((prev) =>
-            prev.map((t) => (t.id === id ? { ...t, open: false } : t))
-          );
-          // Remove from DOM after animation
-          setTimeout(
-            () => {
-              setToasts((prev) => prev.filter((t) => t.id !== id));
-            },
-            300
-          );
-        }, props.duration || 5000);
-
-        return {
-          id,
-          dismiss: () => clearTimeout(timeout),
-        };
-      }
-
-      return {
-        id,
-        dismiss: () => {
-          setToasts((prev) =>
-            prev.map((t) => (t.id === id ? { ...t, open: false } : t))
-          );
-        },
-      };
-    },
-    []
-  );
-
-  const dismiss = useCallback((toastId: string) => {
-    setToasts((prev) =>
-      prev.map((t) => (t.id === toastId ? { ...t, open: false } : t))
-    );
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== toastId));
-    }, 300);
-  }, []);
+  const make = (type: ToastType) => (props: ToastInput) => {
+    const { title, description } = normalize(props);
+    const id = addToast({ title, description, type });
+    return { id, dismiss: () => dismiss(id) };
+  };
 
   const toast = {
-    success: (props: string | { title?: string; description: string }) => {
-      const message = typeof props === "string" ? props : props;
-      return addToast({
-        title: typeof message === "string" ? undefined : message.title,
-        description:
-          typeof message === "string" ? message : message.description,
-        type: "success",
-      });
-    },
-    error: (props: string | { title?: string; description: string }) => {
-      const message = typeof props === "string" ? props : props;
-      return addToast({
-        title: typeof message === "string" ? undefined : message.title,
-        description:
-          typeof message === "string" ? message : message.description,
-        type: "error",
-      });
-    },
-    info: (props: string | { title?: string; description: string }) => {
-      const message = typeof props === "string" ? props : props;
-      return addToast({
-        title: typeof message === "string" ? undefined : message.title,
-        description:
-          typeof message === "string" ? message : message.description,
-        type: "info",
-      });
-    },
-    default: (props: string | { title?: string; description: string }) => {
-      const message = typeof props === "string" ? props : props;
-      return addToast({
-        title: typeof message === "string" ? undefined : message.title,
-        description:
-          typeof message === "string" ? message : message.description,
-        type: "default",
-      });
-    },
+    success: make("success"),
+    error: make("error"),
+    info: make("info"),
+    default: make("default"),
   };
 
   return {

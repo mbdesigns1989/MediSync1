@@ -39,3 +39,5 @@
 // Re-export your stores here for easy imports
 export { useUIStore } from "./ui";
 export { usePatientStore } from "./patients";
+export { useToastStore } from "./toast";
+export type { Toast, ToastType } from "./toast";

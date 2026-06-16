@@ -3,9 +3,10 @@
 import { createContext, useContext, ReactNode } from "react"
 import { Toast as ToastComponent } from "./toast"
 import { useToast } from "@/hooks/use-toast"
+import type { Toast } from "@/store/toast"
 
 interface ToasterContextType {
-  toasts: any[]
+  toasts: Toast[]
   dismiss: (id: string) => void
 }
 
